@@ -70,6 +70,7 @@ public class Recipe implements Comparable, Comparator {
 				distance = 1 - intersectSize / unionSize;
 				break;
 			case SET:
+			{
 				HashSet<String> union = new HashSet<String>();
 				union.addAll(this.ingredientSet);
 				union.addAll(other.ingredientSet);
@@ -82,7 +83,27 @@ public class Recipe implements Comparable, Comparator {
 				}
 				
 				distance =  1 - intersectSize / unionSize;
+		    }
 				break;
+			case WEIGHTED_JACCARD:
+			{
+  			    HashSet<String> union = new HashSet<String>();
+                union.addAll(this.ingredientSet);
+                union.addAll(other.ingredientSet);
+                
+                for (String ingr : union) {
+                  unionSize += (1 * Main.ingredientInfo.get(ingr).getMaxDifferenceInProbabilities());
+                }
+                
+                for (String ingr : this.ingredientSet) {
+                    if (other.ingredientSet.contains(ingr)) {
+                        intersectSize += (1 * Main.ingredientInfo.get(ingr).getMaxDifferenceInProbabilities());
+                    }
+                }
+                
+                distance =  1 - intersectSize / unionSize;
+			  }
+			  break;
 		}
 		
 		return distance;

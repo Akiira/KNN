@@ -38,18 +38,17 @@ public class Main {
 	public static VoteFunction vf = VoteFunction.DISTANCESQ; 
 	
 	public static void main(String[] args) throws IOException {	
-	  output = new BufferedWriter(new FileWriter(new File("parameterData.txt")));
-		readTrainingSet();	
-		crossValidate();
-		//runOnTestData();
+	  output = new BufferedWriter(new FileWriter(new File("parameterData.txt")));		
+		runTests();
 	}
 	
 	public static void runTests() throws IOException {
-	  for(int kVar = 5; kVar < 15; kVar++){
+	  for(int kVar = 6; kVar < 15; kVar++){
 	    k = kVar;
 	    for(int cutVar = 0; cutVar < 6; cutVar++){
 	      minCutOff = cutVar;
 	      buildTabooList();
+	      readTrainingSet();   
 	      for (DistanceFunction dfVar : DistanceFunction.values()) {
 	        df = dfVar;
             for (VoteFunction vfVar : VoteFunction.values()) {

@@ -1,0 +1,7 @@
+K: 6, MinCutOff: 0, df: BAG, vf: EQUAL 
+Accuracy: 0.8827847283135589
+
+K: 6, MinCutOff: 0, df: BAG, vf: DISTANCESQ 
+Accuracy: 0.8877706477078621
+
+K: 6, MinCutOff: 0, df: BAG, vf: SCALEDDIST 

@@ -1,7 +1,9 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,12 +19,13 @@ enum DistanceFunction { BAG, SET, WEIGHTED_BAG, WEIGHTED_JACCARD }
 enum VoteFunction { EQUAL, DISTANCESQ, SCALEDDIST }
 
 // WEIGHTED_JACCARD, DISTANCESQ = 91.075% (k = 10, cutoff = 1)
-//WEIGHTED_JACCARD, DISTANCESQ = 92.4% (k = 10, cutoff = 2)
+//WEIGHTED_JACCARD, DISTANCESQ = 91.47% (k = 10, cutoff = 2)
 // Using leave one out
 
 public class Main {
   public static HashSet<String> ingredients;
   public static HashMap<String, Ingredient> ingredientInfo;
+  public static BufferedWriter output;
   
 	public static HashSet<String> tabooList;
 	static ArrayList<Recipe> trainingData;
@@ -34,20 +37,39 @@ public class Main {
 	public static DistanceFunction df = DistanceFunction.WEIGHTED_JACCARD;
 	public static VoteFunction vf = VoteFunction.DISTANCESQ; 
 	
-	public static void main(String[] args) throws IOException {
-		tabooList = new HashSet<String>();
-		ingredientInfo = new HashMap<>();
-		ingredients = new HashSet<String>();
-		buildTabooList();
-		
+	public static void main(String[] args) throws IOException {	
+	  output = new BufferedWriter(new FileWriter(new File("parameterData.txt")));
 		readTrainingSet();	
-		System.out.println("Taboo List: " + tabooList.size() + ", IngrientInfo: " + ingredientInfo.size());
 		crossValidate();
 		//runOnTestData();
 	}
 	
+	public static void runTests() throws IOException {
+	  for(int kVar = 5; kVar < 15; kVar++){
+	    k = kVar;
+	    for(int cutVar = 0; cutVar < 6; cutVar++){
+	      minCutOff = cutVar;
+	      buildTabooList();
+	      for (DistanceFunction dfVar : DistanceFunction.values()) {
+	        df = dfVar;
+            for (VoteFunction vfVar : VoteFunction.values()) {
+              vf = vfVar;
+              
+              
+              output.write("K: " + k + ", MinCutOff: " + minCutOff + ", df: " + df + ", vf: " + vf + " \n");
+              output.flush();
+              crossValidate();
+            }
+          }
+	    }
+	    
+	  }
+	}
+	
 	public static void buildTabooList() throws IOException {
         tabooList = new HashSet<String>();
+        ingredientInfo = new HashMap<>();
+        ingredients = new HashSet<String>();
         
         BufferedReader br = new BufferedReader(new FileReader(new File(trainingFile)));
         String line;
@@ -137,7 +159,7 @@ public class Main {
 		return cuisine;
 	}
 	
-	public static void crossValidate() {
+	public static void crossValidate() throws IOException {
 		int total = 0;
 		int correct = 0;
 		Collections.shuffle(trainingData);
@@ -180,6 +202,7 @@ public class Main {
 		}
 		
 		System.out.println((double)correct / total);
+		output.write("Accuracy: " + (double)correct / total + "\n\n");
 	}
 	
 	public static void runOnTestData() {

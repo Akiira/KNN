@@ -104,6 +104,24 @@ public class Recipe implements Comparable, Comparator {
                 distance =  1 - intersectSize / unionSize;
 			  }
 			  break;
+			case WEIGHTED_BAG:
+			{
+			  for (String word : this.ingredientBag.keySet()) {
+                if (other.ingredientBag.containsKey(word)) {
+                    intersectSize += Main.ingredientInfo.get(word).getMaxDifferenceInProbabilities() * Math.min(this.ingredientBag.get(word), other.ingredientBag.get(word));
+                }
+              }
+              
+              for (String word : this.ingredientBag.keySet()) {
+                  unionSize += Main.ingredientInfo.get(word).getMaxDifferenceInProbabilities() * this.ingredientBag.get(word);
+              }
+              
+              for (String word : other.ingredientBag.keySet()) {
+                  unionSize += Main.ingredientInfo.get(word).getMaxDifferenceInProbabilities() * other.ingredientBag.get(word);
+              }
+              
+              distance = 1 - intersectSize / unionSize;
+			}
 		}
 		
 		return distance;

@@ -52,39 +52,39 @@ public class Recipe implements Comparable, Comparator {
 		double unionSize = 0;
 		double intersectSize = 0;
 		switch (Main.df) {
-			case BAG:
-				for (String word : this.ingredientBag.keySet()) {
-					if (other.ingredientBag.containsKey(word)) {
-						intersectSize += Math.min(this.ingredientBag.get(word), other.ingredientBag.get(word));
-					}
-				}
-				
-				for (String word : this.ingredientBag.keySet()) {
-					unionSize += this.ingredientBag.get(word);
-				}
-				
-				for (String word : other.ingredientBag.keySet()) {
-					unionSize += other.ingredientBag.get(word);
-				}
-				
-				distance = 1 - intersectSize / unionSize;
-				break;
-			case SET:
-			{
-				HashSet<String> union = new HashSet<String>();
-				union.addAll(this.ingredientSet);
-				union.addAll(other.ingredientSet);
-				unionSize = union.size();
-				
-				for (String ingr : this.ingredientSet) {
-					if (other.ingredientSet.contains(ingr)) {
-						intersectSize++;
-					}
-				}
-				
-				distance =  1 - intersectSize / unionSize;
-		    }
-				break;
+//			case BAG:
+//				for (String word : this.ingredientBag.keySet()) {
+//					if (other.ingredientBag.containsKey(word)) {
+//						intersectSize += Math.min(this.ingredientBag.get(word), other.ingredientBag.get(word));
+//					}
+//				}
+//				
+//				for (String word : this.ingredientBag.keySet()) {
+//					unionSize += this.ingredientBag.get(word);
+//				}
+//				
+//				for (String word : other.ingredientBag.keySet()) {
+//					unionSize += other.ingredientBag.get(word);
+//				}
+//				
+//				distance = 1 - intersectSize / unionSize;
+//				break;
+//			case SET:
+//			{
+//				HashSet<String> union = new HashSet<String>();
+//				union.addAll(this.ingredientSet);
+//				union.addAll(other.ingredientSet);
+//				unionSize = union.size();
+//				
+//				for (String ingr : this.ingredientSet) {
+//					if (other.ingredientSet.contains(ingr)) {
+//						intersectSize++;
+//					}
+//				}
+//				
+//				distance =  1 - intersectSize / unionSize;
+//		    }
+//				break;
 			case WEIGHTED_JACCARD:
 			{
   			    HashSet<String> union = new HashSet<String>();

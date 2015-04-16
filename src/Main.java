@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Scanner;
 
-enum DistanceFunction { BAG, SET, WEIGHTED_BAG, WEIGHTED_JACCARD }
+enum DistanceFunction { WEIGHTED_BAG, WEIGHTED_JACCARD }
 enum VoteFunction { EQUAL, DISTANCESQ, SCALEDDIST }
 
 // WEIGHTED_JACCARD, DISTANCESQ = 91.075% (k = 10, cutoff = 1)
@@ -23,27 +23,48 @@ enum VoteFunction { EQUAL, DISTANCESQ, SCALEDDIST }
 // Using leave one out
 
 public class Main {
-  public static HashSet<String> ingredients;
-  public static HashMap<String, Ingredient> ingredientInfo;
-  public static BufferedWriter output;
+    public static HashSet<String> ingredients;
+    public static HashMap<String, Ingredient> ingredientInfo;
+    public static BufferedWriter output;
   
 	public static HashSet<String> tabooList;
 	static ArrayList<Recipe> trainingData;
+	
+	//Parameters
 	public static int k = 10;
 	public static int minCutOff = 2;
 	public static double minDist;
+	public static DistanceFunction df = DistanceFunction.WEIGHTED_JACCARD;
+    public static VoteFunction vf = VoteFunction.DISTANCESQ; 
+    
 	public static String trainingFile = "training-data.txt";
 	public static PriorityQueue<Recipe> neighbors;
-	public static DistanceFunction df = DistanceFunction.WEIGHTED_JACCARD;
-	public static VoteFunction vf = VoteFunction.DISTANCESQ; 
+	
+	public static int[][] confusionMatrix;
 	
 	public static void main(String[] args) throws IOException {	
-	  output = new BufferedWriter(new FileWriter(new File("parameterData.txt")));		
-		runTests();
+	  //output = new BufferedWriter(new FileWriter(new File("parameterData3.txt")));		
+	  //runTests();
+	  //RunFinalClassifier();
+	  PrintConfusionMatrixInfo();
 	}
 	
-	public static void runTests() throws IOException {
-	  for(int kVar = 6; kVar < 15; kVar++){
+	public static void RunFinalClassifier() throws IOException {
+	  //Set everything to best parameters found during testing:
+	  k = 10;
+	  minCutOff = 2;
+	  df = DistanceFunction.WEIGHTED_JACCARD;
+	  vf = VoteFunction.DISTANCESQ;
+	  
+	  //Build taboo list based on min cutoff and then get all the training data
+	  buildTabooList();
+      readTrainingSet(); 
+      
+      runOnTestData();  
+	}
+	
+	public static void searchForGoodParameters() throws IOException {
+	  for(int kVar = 12; kVar < 15; kVar++){
 	    k = kVar;
 	    for(int cutVar = 0; cutVar < 6; cutVar++){
 	      minCutOff = cutVar;
@@ -64,6 +85,38 @@ public class Main {
 	    
 	  }
 	}
+	
+	public static void PrintConfusionMatrixInfo() throws IOException {
+	  BufferedWriter confFile = new BufferedWriter(new FileWriter(new File("C:\\Users\\Kitty\\Documents\\My Dropbox\\Comp 597 Data Mining\\ConfusionMatrix.txt")));
+	  
+	  //Set everything to best parameters found during testing:
+      k = 10;
+      minCutOff = 1;
+      df = DistanceFunction.WEIGHTED_JACCARD;
+      vf = VoteFunction.DISTANCESQ;
+      
+      //Build taboo list based on min cutoff and then get all the training data
+      buildTabooList();
+      readTrainingSet(); 
+      
+      crossValidate();  
+      
+      confFile.write("\\begin{tabular}{|c|c|c|c|c|c|c|c|c|}\n");
+      confFile.write("\\hline  & French & Italian & Indian & Chinese & Thai & Greek & Mexican \\\\\n");
+      
+      for (int i = 1; i < confusionMatrix.length; i++) {
+        confFile.write("\\hline ");
+        for (int j = 1; j < confusionMatrix[i].length; j++) {
+          confFile.write("& " + confusionMatrix[i][j] + " ");
+        }
+        confFile.write("\\\\\n");
+      }
+      
+      confFile.write("\\hline \n\\end{tabular}");
+      confFile.close();
+	}
+	
+	 
 	
 	public static void buildTabooList() throws IOException {
         tabooList = new HashSet<String>();
@@ -161,7 +214,11 @@ public class Main {
 	public static void crossValidate() throws IOException {
 		int total = 0;
 		int correct = 0;
+		confusionMatrix = new int[8][8];
+		
+		//Shuffle the data to avoid any possible bias in the order of the data
 		Collections.shuffle(trainingData);
+		
 		for (int i = 0 ; i < trainingData.size(); i++) {
 			neighbors = new PriorityQueue<Recipe>(k);
 			minDist = 9999;
@@ -195,6 +252,8 @@ public class Main {
 			}
 			total++;
 			
+			confusionMatrix[trainingData.get(i).cuisine][prediction]++;
+			
 			if (total % 500 == 0) {
 				System.err.println(total + " " + (double)correct / total);
 			}
@@ -207,6 +266,7 @@ public class Main {
 	public static void runOnTestData() {
 		Scanner sc = new Scanner(System.in);
 		String line;
+		
 		while ((line = sc.nextLine()) != null) {
 			Recipe current = new Recipe(false, line, 0);
 			neighbors = new PriorityQueue<Recipe>(k);
